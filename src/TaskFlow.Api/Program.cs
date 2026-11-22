@@ -1,4 +1,4 @@
-using System.Threading.RateLimiter;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using TaskFlow.Api.Contracts;
 using TaskFlow.Api.Middleware;
