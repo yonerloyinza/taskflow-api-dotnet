@@ -1,9 +1,9 @@
 # Roadmap — taskflow-api-c-sharp
 
-- [ ] **Paso 0 — Aclaración de contexto:** Verificar variables de entorno y puertos locales.
-- [ ] **Paso 1 — Estructura Base e Infraestructura:** Scaffolding ASP.NET Core Minimal APIs, .NET 9 estricto, seguridad (CORS, Rate Limit, Security Headers), FluentValidation, Global Error Handling.
+- [x] **Paso 0 — Aclaración de contexto:** Variables verificadas en `/opt/taskflow/.env.csharp` (`APP_NAME`, `ENVIRONMENT`, `PORT=3000`, `CORS_ORIGIN=https://taskflow-api-dotnet.xprad.com`, `RATE_LIMIT_*`, `DATABASE_URL`, `DIRECT_URL`). Host público definitivo: `taskflow-api-dotnet.xprad.com`.
+- [x] **Paso 1 — Estructura Base e Infraestructura:** Solución .NET 9 (`TaskFlow.Domain`, `TaskFlow.Application`, `TaskFlow.Infrastructure`, `TaskFlow.Api`) + `tests/TaskFlow.Api.Tests` (xUnit + WebApplicationFactory), CORS por `CORS_ORIGIN`, rate limit fijo por IP, security headers, `ExceptionHandlingMiddleware` con `ErrorResponse`, FluentValidation cableado, `GET /health` con sondeo real de PostgreSQL en `0.0.0.0:3000`. CI (build + 6 tests) y deploy (SSH → `docker compose up -d --build --no-deps api-csharp`) verificados en el VPS.
 - [ ] **Paso 2 — Persistencia y Migraciones Duales:** EF Core + modelo Task, dual connection (`DATABASE_URL` pooler 6543, `DIRECT_URL` 5432), migraciones EF Core aplicadas a InsForge Cloud.
 - [ ] **Paso 3 — Implementación del Contrato (`docs/openapi.yaml`):** Endpoints CRUD Tasks, filtros (`status`, `priority`, `assignee`), paginación, manejo errores `ErrorResponse`, `GET /health` con verificación DB en `0.0.0.0:3000`.
 - [ ] **Paso 4 — Testing:** Suite unitarias (Service layer) + integración (Endpoints) con xUnit + WebApplicationFactory, 25 tests passing.
 - [ ] **Paso 5a — Documentación y Docker:** AGENTS.md actualizado, docs/01-architecture.md, Dockerfile multi-etapa (.NET 9 Alpine) para VPS AWS + Traefik.
-- [ ] **Paso 5b — CI/CD VPS:** GitHub Actions deploy.yml → SSH → `git pull` + `docker compose up -d --build --no-deps api-csharp` + `docker image prune -f` en `/opt/taskflow`. Variables en `/opt/taskflow/.env.csharp`. Sin Render, sin registros Docker externos.
+- [ ] **Paso 5b — CI/CD VPS:** GitHub Actions deploy.yml → SSH → `git pull` + `docker compose up -d --build --no-deps api-csharp` + `docker image prune -f` en `/opt/taskflow-ecosystem/taskflow-api-c-sharp`. Variables en `/opt/taskflow/.env.csharp`. Sin Render, sin registros Docker externos.

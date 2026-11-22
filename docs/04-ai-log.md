@@ -3,3 +3,5 @@
 | Paso | Qué se pidió al agente | Qué se aceptó | Qué se corrigió manualmente |
 | :--- | :--- | :--- | :--- |
 | Paso 0 | Inicialización de harness independiente | Estructura aislada con contrato OpenAPI 3.1 compartido | N/A |
+| Paso 0 | Aclaración de contexto y puertos | Variables reales en `/opt/taskflow/.env.csharp` y host público `taskflow-api-dotnet.xprad.com` | InsForge no expone el pooler 6543 (cerrado); se usa 5432 para runtime y migraciones |
+| Paso 1 | Scaffolding .NET 9, seguridad, health check y CI/CD al VPS | Solución de 4 proyectos + tests, CI verde, deploy azul-verde por SSH y `GET /health` con `200` en producción | `wget --spider` (HEAD) del healthcheck hacía que Traefik descartara el contenedor → sonda GET sobre `127.0.0.1`; `DATABASE_URL` en URI libpq no lo interpreta Npgsql → traducción a keyword/value en el health checker |
