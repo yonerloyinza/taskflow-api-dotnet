@@ -1,6 +1,7 @@
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using TaskFlow.Api.Contracts;
+using TaskFlow.Api.Endpoints;
 using TaskFlow.Api.Middleware;
 using TaskFlow.Application;
 using TaskFlow.Application.Abstractions;
@@ -8,15 +9,14 @@ using TaskFlow.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Swagger/OpenAPI configuration
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
 
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
 {
     var rawOrigins = builder.Configuration["CORS_ORIGIN"]
@@ -38,24 +38,23 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
     }
 
     policy.AllowAnyHeader().AllowAnyMethod();
-});
+}));
 
 ConfigureRateLimiting(builder);
 
 var app = builder.Build();
 
-// Swagger UI at /docs
 app.UseSwagger();
-app.UseSwaggerUI(c =>
+app.UseSwaggerUI(options =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskFlow API V1");
-    c.RoutePrefix = "docs";
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskFlow API v1");
+    options.RoutePrefix = "docs";
 });
 
 app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-app.UseCORS();
+app.UseCors();
 
 if (app.Services.GetService<RateLimiterOptions>() is not null)
 {
@@ -97,208 +96,7 @@ app.MapGet("/health", async (
     return Results.Json(payload, statusCode: StatusCodes.Status200OK);
 }).WithName("Health").WithTags("Health");
 
-app.MapPost("/tasks", async (
-    IServiceProvider services,
-    CreateTaskRequest request,
-    CancellationToken cancellationToken) =>
-{
-    var dbContext = services.GetRequiredService<TaskFlowDbContext>();
-
-    var task = new Domain.Tasks.Task
-    {
-        Id = Guid.NewGuid(),
-        Title = request.Title,
-        Description = request.Description,
-        Status = TaskStatus.Pendiente,
-        Priority = TaskPriority.Media,
-        Assignee = request.Assignee,
-        DueDate = request.DueDate,
-        CreatedAt = DateTimeOffset.UtcNow,
-        UpdatedAt = DateTimeOffset.UtcNow,
-    };
-
-    dbContext.Tasks.Add(task);
-    await dbContext.SaveChangesAsync(cancellationToken);
-
-    return Results.Ok(new
-    {
-        id = task.Id,
-        title = task.Title,
-        description = task.Description,
-        status = task.Status,
-        priority = task.Priority,
-        assignee = task.Assignee,
-        dueDate = task.DueDate,
-        createdAt = task.CreatedAt,
-        updatedAt = task.UpdatedAt,
-    });
-}).WithName("CreateTask").WithTags("Tasks");
-
-app.MapGet("/tasks", async (
-    IServiceProvider services,
-    string? status,
-    string? priority,
-    string? assignee,
-    int page = 1,
-    int limit = 10,
-    CancellationToken cancellationToken) =>
-{
-    var dbContext = services.GetRequiredService<TaskFlowDbContext>();
-
-    var query = dbContext.Tasks.AsQueryable();
-
-    if (!string.IsNullOrWhiteSpace(status))
-    {
-        query = query.Where(t => t.Status.ToString() == status);
-    }
-
-    if (!string.IsNullOrWhiteSpace(priority))
-    {
-        query = query.Where(t => t.Priority.ToString() == priority);
-    }
-
-    if (!string.IsNullOrWhiteSpace(assignee))
-    {
-        query = query.Where(t => t.Assignee == assignee);
-    }
-
-    var total = await query.CountAsync(cancellationToken);
-    var items = await query
-        .OrderByDescending(t => t.CreatedAt)
-        .Skip((page - 1) * limit)
-        .Take(limit)
-        .ToListAsync(cancellationToken);
-
-    var taskDtos = items.Select(t => new
-    {
-        id = t.Id,
-        title = t.Title,
-        description = t.Description,
-        status = t.Status,
-        priority = t.Priority,
-        assignee = t.Assignee,
-        dueDate = t.DueDate,
-        createdAt = t.CreatedAt,
-        updatedAt = t.UpdatedAt,
-    }).ToList();
-
-    return new
-    {
-        data = taskDtos,
-        meta = new { total, page, limit, lastPage = (int)Math.Ceiling((double)total / limit) },
-    };
-}).WithName("GetTasks").WithTags("Tasks");
-
-app.MapGet("/tasks/{id:guid}", async (
-    IServiceProvider services,
-    Guid id,
-    CancellationToken cancellationToken) =>
-{
-    var dbContext = services.GetRequiredService<TaskFlowDbContext>();
-
-    var task = await dbContext.Tasks.FindAsync(id);
-
-    if (task is null)
-    {
-        return Results.NotFound();
-    }
-
-    return new
-    {
-        id = task.Id,
-        title = task.Title,
-        description = task.Description,
-        status = task.Status,
-        priority = task.Priority,
-        assignee = task.Assignee,
-        dueDate = task.DueDate,
-        createdAt = task.CreatedAt,
-        updatedAt = task.UpdatedAt,
-    };
-}).WithName("GetTask").WithTags("Tasks");
-
-app.MapPatch("/tasks/{id:guid}", async (
-    IServiceProvider services,
-    Guid id,
-    UpdateTaskRequest request,
-    CancellationToken cancellationToken) =>
-{
-    var dbContext = services.GetRequiredService<TaskFlowDbContext>();
-
-    var task = await dbContext.Tasks.FindAsync(id);
-
-    if (task is null)
-    {
-        return Results.NotFound();
-    }
-
-    if (!string.IsNullOrWhiteSpace(request.Title))
-        task.Title = request.Title;
-
-    if (request.Description is not null)
-        task.Description = request.Description;
-
-    if (request.Status != null)
-        task.Status = request.Status switch
-        {
-            "pendiente" => TaskStatus.Pendiente,
-            "en_curso" => TaskStatus.EnCurso,
-            "hecha" => TaskStatus.Hecha,
-            _ => task.Status,
-        };
-
-    if (request.Priority != null)
-        task.Priority = request.Priority switch
-        {
-            "baja" => TaskPriority.Baja,
-            "media" => TaskPriority.Media,
-            "alta" => TaskPriority.Alta,
-            _ => task.Priority,
-        };
-
-    if (!string.IsNullOrWhiteSpace(request.Assignee))
-        task.Assignee = request.Assignee;
-
-    if (request.DueDate != default)
-        task.DueDate = request.DueDate;
-
-    task.UpdatedAt = DateTimeOffset.UtcNow;
-
-    await dbContext.SaveChangesAsync(cancellationToken);
-
-    return new
-    {
-        id = task.Id,
-        title = task.Title,
-        description = task.Description,
-        status = task.Status,
-        priority = task.Priority,
-        assignee = task.Assignee,
-        dueDate = task.DueDate,
-        createdAt = task.CreatedAt,
-        updatedAt = task.UpdatedAt,
-    };
-}).WithName("UpdateTask").WithTags("Tasks");
-
-app.MapDelete("/tasks/{id:guid}", async (
-    IServiceProvider services,
-    Guid id,
-    CancellationToken cancellationToken) =>
-{
-    var dbContext = services.GetRequiredService<TaskFlowDbContext>();
-
-    var task = await dbContext.Tasks.FindAsync(id);
-
-    if (task is null)
-    {
-        return Results.NotFound();
-    }
-
-    dbContext.Tasks.Remove(task);
-    await dbContext.SaveChangesAsync(cancellationToken);
-
-    return Results.NoContent();
-}).WithName("DeleteTask").WithTags("Tasks");
+app.MapTaskEndpoints();
 
 app.Run();
 
@@ -348,5 +146,5 @@ static void ConfigureRateLimiting(WebApplicationBuilder builder)
     });
 }
 
-/// <summary>Expuesto para WebApplicationFactory<Program> en los tests de integración.</summary>
+/// <summary>Expuesto para WebApplicationFactory&lt;Program&gt; en los tests de integración.</summary>
 public partial class Program;
