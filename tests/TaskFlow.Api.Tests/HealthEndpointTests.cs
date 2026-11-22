@@ -23,7 +23,7 @@ public sealed class HealthEndpointTests
 
         Assert.NotNull(payload);
         Assert.Equal("ok", payload!.Status);
-        Assert.Equal("taskflow-api-csharp", payload.Service);
+        Assert.Equal("taskflow-api-dotnet", payload.Service);
         Assert.Equal("up", payload.Database);
         Assert.NotEqual(default, payload.Timestamp);
     }

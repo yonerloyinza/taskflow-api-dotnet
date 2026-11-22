@@ -17,7 +17,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: migrations-taskflow-api-csharp
+  group: migrations-taskflow-api-dotnet
   cancel-in-progress: false
 
 env:
@@ -43,6 +43,9 @@ jobs:
 
       - name: Install EF Core tools
         run: dotnet tool install dotnet-ef --version $EF_VERSION --tool-path .tools
+
+      - name: Build solution
+        run: dotnet build taskflow-api-dotnet.sln -c Release
 
       - name: Create migration when missing
         run: |

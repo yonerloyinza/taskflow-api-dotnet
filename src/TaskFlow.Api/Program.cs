@@ -104,7 +104,7 @@ app.MapGet("/health", async (
     var payload = new HealthResponse
     {
         Status = "ok",
-        Service = "taskflow-api-csharp",
+        Service = "taskflow-api-dotnet",
         Database = "up",
         Timestamp = DateTimeOffset.UtcNow,
     };

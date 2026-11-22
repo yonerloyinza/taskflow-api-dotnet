@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for taskflow-api-c-sharp
+# Multi-stage Dockerfile for taskflow-api-dotnet
 # VPS AWS EC2 + Traefik — .NET 9 Alpine
 
 # ==========================================

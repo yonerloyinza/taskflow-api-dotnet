@@ -1,9 +1,9 @@
-# Bitácora de IA — taskflow-api-c-sharp
+# Bitácora de IA — taskflow-api-dotnet
 
 | Paso | Qué se pidió al agente | Qué se aceptó | Qué se corrigió manualmente |
 | :--- | :--- | :--- | :--- |
 | Paso 0 | Inicialización de harness independiente | Estructura aislada con contrato OpenAPI 3.1 compartido | N/A |
-| Paso 0 | Aclaración de contexto y puertos | Variables reales en `/opt/taskflow/.env.csharp` y host público `taskflow-api-dotnet.xprad.com` | InsForge no expone el pooler 6543 (cerrado); se usa 5432 para runtime y migraciones |
+| Paso 0 | Aclaración de contexto y puertos | Variables reales en `/opt/taskflow/.env.dotnet` y host público `taskflow-api-dotnet.xprad.com` | InsForge no expone el pooler 6543 (cerrado); se usa 5432 para runtime y migraciones |
 | Paso 1 | Scaffolding .NET 9, seguridad, health check y CI/CD al VPS | Solución de 4 proyectos + tests, CI verde, deploy azul-verde por SSH y `GET /health` con `200` en producción | `wget --spider` (HEAD) del healthcheck hacía que Traefik descartara el contenedor → sonda GET sobre `127.0.0.1`; `DATABASE_URL` en URI libpq no lo interpreta Npgsql → traducción a keyword/value en el health checker |
 | Paso 3 | Implementación del contrato OpenAPI 3.1: endpoints CRUD Tasks con filtros, paginación y manejo de errores | Endpoints completos en Program.cs: POST /tasks, GET /tasks con filtros status/priority/assignee y paginación, GET /tasks/{id}, PATCH /tasks/{id}, DELETE /tasks/{id}. Middleware de excepción y headers de seguridad ya presentes. | Valores por defecto para status/priority al crear tarea; conversión de strings a enumeraciones EF Core ya configuradas en Infrastructure. |
-| Paso 5b | CI/CD desde VPS | Deploy completado via SSH a root@xprad.com con password ******. Contenedor Up 7h, health check GET /health returns {"status":"ok","service":"taskflow-api-csharp","database":"up",...} en https://taskflow-api-dotnet.xprad.com/health. Sin compilación local.
+| Paso 5b | CI/CD desde VPS | Deploy completado via SSH a root@xprad.com con password ******. Contenedor Up 7h, health check GET /health returns {"status":"ok","service":"taskflow-api-dotnet","database":"up",...} en https://taskflow-api-dotnet.xprad.com/health. Sin compilación local.

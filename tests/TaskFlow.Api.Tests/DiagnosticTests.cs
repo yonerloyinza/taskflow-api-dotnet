@@ -1,4 +1,3 @@
-using Xunit;
 using System.Net;
 
 namespace TaskFlow.Api.Tests;
@@ -14,7 +13,6 @@ public sealed class DiagnosticTests
         var response = await client.GetAsync("/health");
         var body = await response.Content.ReadAsStringAsync();
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.True(false, $"status={(int)response.StatusCode} body={body}");
+        Assert.Fail($"status={(int)response.StatusCode} body={body}");
     }
 }

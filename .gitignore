@@ -3,7 +3,7 @@
 **/obj/
 **/TestResults/
 
-# Environment files (secrets live on the VPS at /opt/taskflow/.env.csharp)
+# Environment files (secrets live on the VPS at /opt/taskflow/.env.dotnet)
 .env
 .env.*
 !.env.example

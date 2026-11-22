@@ -5,7 +5,7 @@ public sealed class HealthResponse
 {
     public string Status { get; init; } = "ok";
 
-    public string Service { get; init; } = "taskflow-api-csharp";
+    public string Service { get; init; } = "taskflow-api-dotnet";
 
     public string Database { get; init; } = "up";
 

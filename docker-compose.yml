@@ -1,12 +1,12 @@
 services:
-  api-csharp:
+  api-dotnet:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: taskflow-api-csharp
+    container_name: taskflow-api-dotnet
     restart: unless-stopped
     env_file:
-      - /opt/taskflow/.env.csharp
+      - /opt/taskflow/.env.dotnet
     environment:
       - ASPNETCORE_URLS=http://0.0.0.0:3000
       - ASPNETCORE_ENVIRONMENT=Production
@@ -14,11 +14,11 @@ services:
       - "3000"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.api-csharp.rule=Host(`taskflow-api-dotnet.xprad.com`)"
-      - "traefik.http.routers.api-csharp.entrypoints=websecure"
-      - "traefik.http.routers.api-csharp.tls.certresolver=lets-encrypt"
-      - "traefik.http.services.api-csharp.loadbalancer.server.port=3000"
-      - "traefik.http.routers.api-csharp.middlewares=secHeaders@file"
+      - "traefik.http.routers.api-dotnet.rule=Host(`taskflow-api-dotnet.xprad.com`)"
+      - "traefik.http.routers.api-dotnet.entrypoints=websecure"
+      - "traefik.http.routers.api-dotnet.tls.certresolver=lets-encrypt"
+      - "traefik.http.services.api-dotnet.loadbalancer.server.port=3000"
+      - "traefik.http.routers.api-dotnet.middlewares=secHeaders@file"
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3000/health | grep -q '\"status\":\"ok\"'"]
       interval: 30s
@@ -28,14 +28,14 @@ services:
     networks:
       - public
 
-  api-csharp-migrate:
+  api-dotnet-migrate:
     build:
       context: .
       dockerfile: Dockerfile
       target: migrations
-    container_name: taskflow-api-csharp-migrate
+    container_name: taskflow-api-dotnet-migrate
     env_file:
-      - /opt/taskflow/.env.csharp
+      - /opt/taskflow/.env.dotnet
     networks:
       - public
 
