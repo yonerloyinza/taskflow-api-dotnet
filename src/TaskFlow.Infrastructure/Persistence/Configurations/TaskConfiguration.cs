@@ -24,11 +24,11 @@ public sealed class TaskConfiguration : IEntityTypeConfiguration<TaskEntity>
             .HasMaxLength(500);
 
         builder.Property(task => task.Status)
-            .HasConversion(ContractEnumConverters.TaskStatus)
+            .HasConversion(ContractEnumConverters.Status)
             .HasMaxLength(20);
 
         builder.Property(task => task.Priority)
-            .HasConversion(ContractEnumConverters.TaskPriority)
+            .HasConversion(ContractEnumConverters.Priority)
             .HasMaxLength(10);
 
         builder.Property(task => task.Assignee)

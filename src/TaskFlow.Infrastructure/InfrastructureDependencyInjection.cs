@@ -24,7 +24,7 @@ public static class InfrastructureDependencyInjection
         }
 
         services.AddDbContext<TaskFlowDbContext>(options => options
-            .UseNpgsql(connectionString, npgsql => npgsql.MigrateAssembly(typeof(TaskFlowDbContext).Assembly)));
+            .UseNpgsql(connectionString));
 
         return services;
     }

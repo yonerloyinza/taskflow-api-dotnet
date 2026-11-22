@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore.Design;
 
 namespace TaskFlow.Infrastructure.Persistence;
@@ -27,7 +28,7 @@ public sealed class TaskFlowDbContextFactory : IDesignTimeDbContextFactory<TaskF
         }
 
         var options = new DbContextOptionsBuilder<TaskFlowDbContext>()
-            .UseNpgsql(connectionString, npgsql => npgsql.MigrateAssembly(typeof(TaskFlowDbContext).Assembly))
+            .UseNpgsql(connectionString)
             .Options;
 
         return new TaskFlowDbContext(options);
