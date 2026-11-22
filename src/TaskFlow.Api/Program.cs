@@ -44,6 +44,22 @@ ConfigureRateLimiting(builder);
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    app.Use(async (context, next) =>
+    {
+        try
+        {
+            await next(context);
+        }
+        catch (Exception exception)
+        {
+            context.Response.StatusCode = 599;
+            await context.Response.WriteAsJsonAsync(new { error = exception.ToString() });
+        }
+    });
+}
+
 app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
