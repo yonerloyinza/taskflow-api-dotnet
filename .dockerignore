@@ -1,0 +1,29 @@
+# Build output
+**/bin/
+**/obj/
+**/TestResults/
+
+# Tooling / VCS
+.git/
+.github/
+.vs/
+.vscode/
+.idea/
+*.user
+
+# Docs and tests are not needed at runtime
+docs/
+tests/
+
+# Local env files
+.env
+.env.*
+!.env.*.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+*.trx

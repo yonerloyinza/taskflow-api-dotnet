@@ -1,0 +1,67 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-taskflow-api-csharp
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to AWS EC2 via SSH
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/main' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+
+      - name: Deploy to VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            set -e
+            cd /opt/taskflow-ecosystem/taskflow-api-c-sharp
+
+            # Sync working tree to the latest main (repo must stay clean; secrets live in /opt/taskflow)
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Build and deploy only the api-csharp service
+            docker compose up -d --build --no-deps api-csharp
+
+            # Clean up unused images
+            docker image prune -f
+
+            echo "Deployment completed successfully"
+          EOF
+
+      - name: Verify health endpoint
+        run: |
+          sleep 10
+          for i in {1..12}; do
+            if curl -sf "https://taskflow-api-csharp.xprad.com/health" | grep -q '"status":"ok"'; then
+              echo "Health check passed"
+              exit 0
+            fi
+            echo "Waiting for health check... attempt $i/12"
+            sleep 5
+          done
+          echo "Health check failed"
+          exit 1
