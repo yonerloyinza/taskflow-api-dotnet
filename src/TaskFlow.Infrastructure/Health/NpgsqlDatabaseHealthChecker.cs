@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 using TaskFlow.Application.Abstractions;
 
 namespace TaskFlow.Infrastructure.Health;
