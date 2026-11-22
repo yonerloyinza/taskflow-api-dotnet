@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TaskFlow.Domain.Tasks;
+using TaskPriority = TaskFlow.Domain.Tasks.TaskPriority;
+using TaskStatus = TaskFlow.Domain.Tasks.TaskStatus;
 
 namespace TaskFlow.Infrastructure.Persistence;
 
