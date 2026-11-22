@@ -1,0 +1,69 @@
+name: Migrations
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "!src/TaskFlow.Infrastructure/Migrations/**"
+  workflow_dispatch:
+    inputs:
+      name:
+        description: "Nombre de la migración (vacío = solo verificar)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: migrations-taskflow-api-csharp
+  cancel-in-progress: false
+
+env:
+  DOTNET_VERSION: "9.0.x"
+  EF_VERSION: "9.0.0"
+  PROJECT: src/TaskFlow.Infrastructure/TaskFlow.Infrastructure.csproj
+  STARTUP: src/TaskFlow.Api/TaskFlow.Api.csproj
+  # Las herramientas EF instancian el DbContext en design-time; no se abre conexión.
+  DIRECT_URL: "postgresql://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable"
+
+jobs:
+  migrations:
+    name: Ensure EF Core migrations
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install EF Core tools
+        run: dotnet tool install dotnet-ef --version $EF_VERSION --tool-path .tools
+
+      - name: Create migration when missing
+        run: |
+          NAME="${{ inputs.name }}"
+          if [ -n "$NAME" ]; then
+            .tools/dotnet-ef migrations add "$NAME" --project $PROJECT --startup-project $STARTUP --output-dir Migrations
+          elif [ ! -d src/TaskFlow.Infrastructure/Migrations ]; then
+            .tools/dotnet-ef migrations add InitialCreate --project $PROJECT --startup-project $STARTUP --output-dir Migrations
+          fi
+
+      - name: Verify model matches migrations
+        run: .tools/dotnet-ef migrations has-pending-model-changes --project $PROJECT --startup-project $STARTUP
+
+      - name: Commit migrations
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/TaskFlow.Infrastructure/Migrations
+          if git diff --cached --quiet; then
+            echo "Sin cambios en migraciones"
+          else
+            git commit -m "feat(db): add EF Core migration"
+            git push
+          fi

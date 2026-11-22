@@ -28,6 +28,17 @@ services:
     networks:
       - public
 
+  api-csharp-migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrations
+    container_name: taskflow-api-csharp-migrate
+    env_file:
+      - /opt/taskflow/.env.csharp
+    networks:
+      - public
+
 networks:
   public:
     external: true

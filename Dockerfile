@@ -21,7 +21,26 @@ COPY . .
 RUN dotnet publish src/TaskFlow.Api/TaskFlow.Api.csproj -c Release -o /app/publish --no-restore
 
 # ==========================================
-# Stage 2: Runtime
+# Stage 2: Migrations (dotnet ef against DIRECT_URL)
+# ==========================================
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS migrations
+WORKDIR /src
+
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+    DOTNET_NOLOGO=1 \
+    PATH="$PATH:/root/.dotnet/tools"
+
+COPY . .
+
+RUN dotnet tool install --global dotnet-ef --version 9.0.0 \
+    && dotnet restore src/TaskFlow.Api/TaskFlow.Api.csproj
+
+ENTRYPOINT ["dotnet", "ef", "database", "update", \
+    "--project", "src/TaskFlow.Api/TaskFlow.Api.csproj", \
+    "--startup-project", "src/TaskFlow.Api/TaskFlow.Api.csproj"]
+
+# ==========================================
+# Stage 3: Runtime
 # ==========================================
 FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS runtime
 WORKDIR /app

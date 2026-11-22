@@ -1,11 +1,10 @@
 name: Deploy to VPS
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Migrations"]
+    types: [completed]
     branches: [main]
-    paths-ignore:
-      - "docs/**"
-      - "**/*.md"
   workflow_dispatch:
 
 permissions:
@@ -19,7 +18,7 @@ jobs:
   deploy:
     name: Deploy to AWS EC2 via SSH
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -42,6 +41,10 @@ jobs:
             # Sync working tree to the latest main (repo must stay clean; secrets live in /opt/taskflow)
             git fetch origin main
             git reset --hard origin/main
+
+            # Apply EF Core migrations with DIRECT_URL before starting the new image
+            docker compose build api-csharp-migrate
+            docker compose run --rm api-csharp-migrate
 
             # Build and deploy only the api-csharp service
             docker compose up -d --build --no-deps api-csharp
