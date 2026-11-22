@@ -32,7 +32,7 @@ ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 \
 
 COPY . .
 
-RUN dotnet tool install --global dotnet-ef --version 9.0.0 \
+RUN dotnet tool install --global dotnet-ef --version 9.0.1 \
     && dotnet restore src/TaskFlow.Api/TaskFlow.Api.csproj
 
 ENTRYPOINT ["dotnet", "ef", "database", "update", \

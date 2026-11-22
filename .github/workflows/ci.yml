@@ -14,7 +14,7 @@ permissions:
 
 env:
   DOTNET_VERSION: "9.0.x"
-  EF_VERSION: "9.0.0"
+  EF_VERSION: "9.0.1"
   SOLUTION: taskflow-api-c-sharp.sln
 
 jobs:

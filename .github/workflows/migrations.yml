@@ -22,7 +22,7 @@ concurrency:
 
 env:
   DOTNET_VERSION: "9.0.x"
-  EF_VERSION: "9.0.0"
+  EF_VERSION: "9.0.1"
   PROJECT: src/TaskFlow.Infrastructure/TaskFlow.Infrastructure.csproj
   STARTUP: src/TaskFlow.Api/TaskFlow.Api.csproj
   # Las herramientas EF instancian el DbContext en design-time; no se abre conexión.
