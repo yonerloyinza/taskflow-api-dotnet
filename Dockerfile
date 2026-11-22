@@ -40,6 +40,6 @@ USER appuser
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-  CMD wget -q -O - http://localhost:3000/health | grep -q '"status":"ok"' || exit 1
+  CMD wget -q -O - http://127.0.0.1:3000/health | grep -q '"status":"ok"' || exit 1
 
 ENTRYPOINT ["dotnet", "TaskFlow.Api.dll"]
