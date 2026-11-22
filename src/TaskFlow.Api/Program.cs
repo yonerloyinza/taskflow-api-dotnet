@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using TaskFlow.Api.Contracts;
 using TaskFlow.Api.Middleware;
 using TaskFlow.Application;
+using TaskFlow.Application.Abstractions;
 using TaskFlow.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);

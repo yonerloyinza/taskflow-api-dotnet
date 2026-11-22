@@ -1,3 +1,4 @@
+using FluentValidation;
 using TaskFlow.Api.Contracts;
 
 namespace TaskFlow.Api.Middleware;
