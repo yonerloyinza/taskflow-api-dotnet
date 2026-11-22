@@ -44,7 +44,11 @@ app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseCors();
-app.UseRateLimiter();
+
+if (app.Services.GetService<RateLimiterOptions>() is not null)
+{
+    app.UseRateLimiter();
+}
 
 app.MapGet("/health", async (
     IDatabaseHealthChecker database,
