@@ -13,4 +13,5 @@
     <ProjectReference Include="..\TaskFlow.Infrastructure\TaskFlow.Infrastructure.csproj" />
   </ItemGroup>
 
+<PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.0" />
 </Project>

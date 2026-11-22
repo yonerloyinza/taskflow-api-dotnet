@@ -8,6 +8,10 @@ using TaskFlow.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Swagger/OpenAPI configuration
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
 
 builder.Services.AddEndpointsApiExplorer();
@@ -40,10 +44,18 @@ ConfigureRateLimiting(builder);
 
 var app = builder.Build();
 
+// Swagger UI at /docs
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskFlow API V1");
+    c.RoutePrefix = "docs";
+});
+
 app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-app.UseCors();
+app.UseCORS();
 
 if (app.Services.GetService<RateLimiterOptions>() is not null)
 {
