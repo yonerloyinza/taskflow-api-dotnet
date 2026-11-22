@@ -1,4 +1,5 @@
 using System.Net;
+using Xunit;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Http;
 using TaskFlow.Api.Contracts;
@@ -49,12 +50,12 @@ public sealed class ErrorContractTests
         using var client = factory.CreateClient();
         using var request = new HttpRequestMessage(HttpMethod.Get, "/health");
 
-        request.Headers.Add("Origin", "https://taskflow-api-csharp.xprad.com");
+        request.Headers.Add("Origin", "https://taskflow-api-dotnet.xprad.com");
 
         var response = await client.SendAsync(request);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(response.Headers.Contains("Access-Control-Allow-Origin"));
-        Assert.Equal("https://taskflow-api-csharp.xprad.com", response.Headers.GetValues("Access-Control-Allow-Origin").Single());
+        Assert.Equal("https://taskflow-api-dotnet.xprad.com", response.Headers.GetValues("Access-Control-Allow-Origin").Single());
     }
 }

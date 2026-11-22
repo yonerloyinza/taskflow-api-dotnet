@@ -16,7 +16,7 @@ public sealed class TaskFlowApiFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseSetting("CORS_ORIGIN", "https://taskflow-api-csharp.xprad.com");
+        builder.UseSetting("CORS_ORIGIN", "https://taskflow-api-dotnet.xprad.com");
         builder.UseSetting("RATE_LIMIT_ENABLED", "false");
 
         builder.ConfigureServices(services =>

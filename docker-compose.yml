@@ -14,7 +14,7 @@ services:
       - "3000"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.api-csharp.rule=Host(`taskflow-api-csharp.xprad.com`)"
+      - "traefik.http.routers.api-csharp.rule=Host(`taskflow-api-dotnet.xprad.com`)"
       - "traefik.http.routers.api-csharp.entrypoints=websecure"
       - "traefik.http.routers.api-csharp.tls.certresolver=lets-encrypt"
       - "traefik.http.services.api-csharp.loadbalancer.server.port=3000"
