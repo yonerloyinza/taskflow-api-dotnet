@@ -114,7 +114,7 @@ static void ConfigureRateLimiting(WebApplicationBuilder builder)
                 Path = context.HttpContext.Request.Path.Value ?? "/",
             };
 
-            return context.HttpContext.Response.WriteAsJsonAsync(payload, cancellationToken: cancellationToken);
+            return new ValueTask(context.HttpContext.Response.WriteAsJsonAsync(payload, cancellationToken: cancellationToken));
         };
 
         options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
