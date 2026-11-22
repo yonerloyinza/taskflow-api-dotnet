@@ -1,5 +1,3 @@
-using FluentValidation;
-using FluentValidation.DependencyInjectionExtensions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace TaskFlow.Application;
