@@ -14,14 +14,10 @@ public static class InfrastructureDependencyInjection
     {
         var connectionString = ConnectionStringResolver.Normalize(
             configuration["DATABASE_URL"]
-            ?? configuration["ConnectionStrings:TaskFlow"]);
+            ?? configuration["ConnectionStrings:TaskFlow"])
+            ?? "Host=127.0.0.1;Port=5432;Database=taskflow;Username=postgres;Password=postgres";
 
         services.AddSingleton<IDatabaseHealthChecker, NpgsqlDatabaseHealthChecker>();
-
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            return services;
-        }
 
         services.AddDbContext<TaskFlowDbContext>(options => options
             .UseNpgsql(connectionString));
