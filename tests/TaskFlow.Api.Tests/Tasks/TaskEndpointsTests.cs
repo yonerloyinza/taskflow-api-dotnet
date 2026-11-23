@@ -1,6 +1,7 @@
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Xunit;
 using TaskFlow.Api.Contracts;
 using TaskFlow.Application.Tasks;
@@ -70,13 +71,13 @@ public sealed class TaskEndpointsTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
-        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+        var error = await ReadErrorAsync(response);
 
-        Assert.NotNull(error);
-        Assert.Equal(StatusCodes.Status400BadRequest, error!.StatusCode);
-        var messages = error.Message as string[] ?? Array.Empty<string>();
+        Assert.Equal(StatusCodes.Status400BadRequest, error.GetProperty("statusCode").GetInt32());
 
-        Assert.Contains(messages, message => message.Contains("title"));
+        var messages = error.GetProperty("message").EnumerateArray().Select(item => item.GetString()).ToArray();
+
+        Assert.Contains(messages, message => message!.Contains("title"));
     }
 
     [DatabaseFact]
@@ -101,11 +102,10 @@ public sealed class TaskEndpointsTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 
-        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+        var error = await ReadErrorAsync(response);
 
-        Assert.NotNull(error);
-        Assert.Equal("Not Found", error!.Error);
-        Assert.Equal("Task not found", error.Message);
+        Assert.Equal("Not Found", error.GetProperty("error").GetString());
+        Assert.Equal("Task not found", error.GetProperty("message").GetString());
     }
 
     [DatabaseFact]
@@ -221,6 +221,13 @@ public sealed class TaskEndpointsTests : IAsyncLifetime
         _created.Add(task!.Id);
 
         return task;
+    }
+
+    private static async Task<JsonElement> ReadErrorAsync(HttpResponseMessage response)
+    {
+        var json = await response.Content.ReadAsStringAsync();
+
+        return JsonDocument.Parse(json).RootElement;
     }
 
     private async Task<HttpResponseMessage> PatchTaskAsync(Guid id, UpdateTaskRequest request)
