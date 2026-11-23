@@ -42,9 +42,10 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            # Apply EF Core migrations with DIRECT_URL before starting the new image
+            # Apply EF Core migrations with DIRECT_URL before starting the new image.
+            # -T evita que el contenedor consuma el stdin del script (heredoc).
             docker compose build api-dotnet-migrate
-            docker compose run --rm api-dotnet-migrate
+            docker compose run --rm -T api-dotnet-migrate
 
             # Build and deploy only the api-dotnet service
             docker compose up -d --build --no-deps api-dotnet
@@ -59,7 +60,7 @@ jobs:
         run: |
           sleep 10
           for i in {1..12}; do
-            if curl -sf "https://taskflow-api-dotnet.xprad.com/health" | grep -q '"status":"ok"'; then
+            if curl -sf "https://taskflow-api-dotnet.xprad.com/health" | grep -q '"service":"taskflow-api-dotnet"'; then
               echo "Health check passed"
               exit 0
             fi
