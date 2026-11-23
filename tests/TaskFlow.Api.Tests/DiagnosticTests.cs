@@ -7,7 +7,6 @@ public sealed class DiagnosticTests
 {
     [Fact]
     public async Task DumpHealth()
-    {
         using var factory = new TaskFlowApiFactory();
         using var client = factory.CreateClient();
 
@@ -16,4 +15,3 @@ public sealed class DiagnosticTests
 
         Assert.Fail($"status={(int)response.StatusCode} body={body}");
     }
-}
