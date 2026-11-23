@@ -16,11 +16,29 @@ env:
   DOTNET_VERSION: "9.0.x"
   EF_VERSION: "9.0.1"
   SOLUTION: taskflow-api-dotnet.sln
+  DATABASE_URL: "postgresql://taskflow:taskflow@127.0.0.1:5432/taskflow?sslmode=disable"
+  DIRECT_URL: "postgresql://taskflow:taskflow@127.0.0.1:5432/taskflow?sslmode=disable"
 
 jobs:
   build-and-test:
     name: Build & Test
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: taskflow
+          POSTGRES_PASSWORD: taskflow
+          POSTGRES_DB: taskflow
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U taskflow"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -36,15 +54,19 @@ jobs:
       - name: Build (Release)
         run: dotnet build $SOLUTION -c Release --no-restore
 
+      - name: Apply EF Core migrations
+        run: |
+          dotnet tool install dotnet-ef --version $EF_VERSION --tool-path .tools
+          .tools/dotnet-ef database update \
+            --project src/TaskFlow.Infrastructure/TaskFlow.Infrastructure.csproj \
+            --startup-project src/TaskFlow.Api/TaskFlow.Api.csproj
+
       - name: Test
         run: dotnet test $SOLUTION -c Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory ./TestResults
 
       - name: Verify EF Core migrations
         if: hashFiles('src/TaskFlow.Infrastructure/Migrations/*.cs') != ''
-        env:
-          DIRECT_URL: "postgresql://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable"
         run: |
-          dotnet tool install dotnet-ef --version $EF_VERSION --tool-path .tools
           .tools/dotnet-ef migrations has-pending-model-changes \
             --project src/TaskFlow.Infrastructure/TaskFlow.Infrastructure.csproj \
             --startup-project src/TaskFlow.Api/TaskFlow.Api.csproj

@@ -1,7 +1,7 @@
 namespace TaskFlow.Application.Tasks;
 
 /// <summary>Cuerpo de `POST /tasks` (contrato `CreateTaskRequest`).</summary>
-public sealed class CreateTaskRequest
+public sealed record CreateTaskRequest
 {
     public string Title { get; init; } = string.Empty;
 
@@ -17,7 +17,7 @@ public sealed class CreateTaskRequest
 }
 
 /// <summary>Cuerpo de `PATCH /tasks/{id}` (contrato `UpdateTaskRequest`).</summary>
-public sealed class UpdateTaskRequest
+public sealed record UpdateTaskRequest
 {
     public string? Title { get; init; }
 
